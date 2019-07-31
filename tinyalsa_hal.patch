@@ -1,0 +1,174 @@
+--- tinyalsa_hal.c	2019-07-29 14:18:18.955446977 +0530
++++ tinyalsa_hal_new.c	2019-07-29 14:25:16.264271261 +0530
+@@ -17,7 +17,7 @@
+ /* Copyright 2017 NXP */
+ 
+ #define LOG_TAG "audio_hw_primary"
+-//#define LOG_NDEBUG 0
++#define LOG_NDEBUG 0
+ 
+ #include <errno.h>
+ #include <pthread.h>
+@@ -539,6 +539,11 @@
+         out->pcm[PCM_NORMAL] = pcm_open(card, port,out->write_flags[PCM_NORMAL], &out->config[PCM_NORMAL]);
+         ALOGW("card %d, port %d device 0x%x", card, port, out->device);
+         ALOGW("rate %d, channel %d period_size 0x%x", out->config[PCM_NORMAL].rate, out->config[PCM_NORMAL].channels, out->config[PCM_NORMAL].period_size);
++        ALOGW("start_output_stream_primary1=ASHWINI");    
++        ALOGD("start_output_stream_primary2=ASHWINI");
++        ALOGE("start_output_stream_primary3=ASHWINI");
++        ALOGI("start_output_stream_primary4=ASHWINI");
++        ALOGV("start_output_stream_primary5=ASHWINI");
+         success = true;
+     }
+ 
+@@ -551,6 +556,11 @@
+         out->pcm[PCM_HDMI] = pcm_open(card, port,out->write_flags[PCM_HDMI], &out->config[PCM_HDMI]);
+         ALOGW("card %d, port %d device 0x%x", card, port, out->device);
+         ALOGW("rate %d, channel %d period_size 0x%x", out->config[PCM_HDMI].rate, out->config[PCM_HDMI].channels, out->config[PCM_HDMI].period_size);
++        ALOGW("start_output_stream_PRIMARY1=ASHWINI");
++        ALOGD("start_output_stream_PRIMARY2=ASHWINI");
++        ALOGE("start_output_stream_PRIMARY3=ASHWINI");
++        ALOGI("start_output_stream_PRIMARY4=ASHWINI");
++        ALOGV("start_output_stream_PRIMARY5=ASHWINI");
+         success = true;
+     }
+     /* default to low power: will be corrected in out_write if necessary before first write to
+@@ -606,6 +616,11 @@
+     card = get_card_for_device(adev, out->device & AUDIO_DEVICE_OUT_AUX_DIGITAL, PCM_OUT, &out->card_index);
+     ALOGW("card %d, port %d device 0x%x", card, port, out->device);
+     ALOGW("rate %d, channel %d period_size 0x%x", out->config[PCM_HDMI].rate, out->config[PCM_HDMI].channels, out->config[PCM_HDMI].period_size);
++    ALOGW("start_output_stream_HDMIW=ASHWINI");
++    ALOGD("start_output_stream_HDMID=ASHWINI");
++    ALOGE("start_output_stream_HDMIE=ASHWINI");
++    ALOGI("start_output_stream_HDMII=ASHWINI");
++    ALOGV("start_output_stream_HDMIV=ASHWINI");
+ 
+     out->pcm[PCM_HDMI] = pcm_open(card, port, PCM_OUT | PCM_MONOTONIC, &out->config[PCM_HDMI]);
+ 
+@@ -641,7 +656,11 @@
+     card = get_card_for_device(adev, out->device & AUDIO_DEVICE_OUT_SPEAKER, PCM_OUT, &out->card_index);
+     ALOGW("card %d, port %d device 0x%x", card, port, out->device);
+     ALOGW("rate %d, channel %d period_size 0x%x", out->config[PCM_ESAI].rate, out->config[PCM_ESAI].channels, out->config[PCM_ESAI].period_size);
+-
++    ALOGW("start_output_stream_esaiW=ASHWINI");
++    ALOGD("start_output_stream_esaiD=ASHWINI");
++    ALOGE("start_output_stream_esaiE=ASHWINI");
++    ALOGI("start_output_stream_esaiI=ASHWINI");
++    ALOGV("start_output_stream_esaiV=ASHWINI");
+     out->pcm[PCM_ESAI] = pcm_open(card, port, PCM_OUT | PCM_MONOTONIC, &out->config[PCM_ESAI]);
+ 
+     if (out->pcm[PCM_ESAI] && !pcm_is_ready(out->pcm[PCM_ESAI])) {
+@@ -2205,6 +2224,7 @@
+ static ssize_t in_read(struct audio_stream_in *stream, void* buffer,
+                        size_t bytes)
+ {
++    ALOGW("ASHWINI_IN_READFUNC");
+     int ret = 0;
+     struct imx_stream_in *in = (struct imx_stream_in *)stream;
+     struct imx_audio_device *adev = in->dev;
+@@ -2217,39 +2237,62 @@
+     pthread_mutex_lock(&adev->lock);
+     pthread_mutex_lock(&in->lock);
+     if (in->standby) {
++	ALOGW("ASHWINI_IN->STANDBY"); 
+         ret = start_input_stream(in);
++	ALOGW("ASHWINI,ret=%d",ret);
+         if (ret == 0) {
++            ALOGW("ASHWINI,RET==0"); 
+             in->standby = 0;
+             in->mute_500ms = in->requested_rate * audio_stream_frame_size(&stream->common)/2;
+         }
+     }
+     pthread_mutex_unlock(&adev->lock);
+ 
+-    if (ret < 0)
++    if (ret < 0){
++	ALOGW("ASHWINI,RET<0");
+         goto exit;
++        }
+ 
+     spdif_in_rate_check(in);
+ 
+     if (in->num_preprocessors != 0)
++        {
++	ALOGW("IN->NUM_PREPROCESSORS_ASHWINI");
+         ret = process_frames(in, buffer, frames_rq);
++	ALOGW("ASHWINI___IN->NUM...RET=%d",ret);
++        }
+     else if (in->resampler != NULL)
++        {
++	ALOGW("ASHWINI IN->RESAMPLER"); 
+         ret = read_frames(in, buffer, frames_rq);
++	ALOGW("ASHWINI IN->RESAMPLER RET=%d",ret);
++        }
+     else
++        {
+         ret = pcm_read_convert(in, in->pcm, buffer, bytes);
++        ALOGW("ASHWINI PCM_READ_CONVERT RET=%d",ret);
++        }
+ 
+     if(ret < 0) ALOGW("ret %d, pcm read error %s.", ret, pcm_get_error(in->pcm));
+ 
+     if (ret > 0)
++       {
++	ALOGW("ASHWINI RET>02TIMES"); 
+         ret = 0;
+-
+-    if (ret == 0 && adev->mic_mute)
++       }
++    ALOGW("ASHWINI_BEFORE_MMCPY");
++  /*  if (ret == 0 && adev->mic_mute) */
+         memset(buffer, 0, bytes);
++    ALOGW("ASHWINI_AFTER_MMCPY"); 
+ 
+     if (in->mute_500ms > 0) {
++	ALOGW("ASHWINI IN->MUTE_500MS");
+         if(bytes <= in->mute_500ms) {
++		ALOGW("ASHWINI BYTES=%d",bytes);
+                 memset(buffer, 0, bytes);
+                 in->mute_500ms = in->mute_500ms - bytes;
+         } else {
++		ALOGW("ASHWINI ELSE PART");
+                 memset(buffer, 0, in->mute_500ms);
+                 in->mute_500ms = 0;
+         }
+@@ -2257,6 +2300,7 @@
+ 
+ exit:
+     if (ret < 0) {
++	ALOGW("ASHWINI RET<0EXIT PART");
+         memset(buffer, 0, bytes);
+         usleep(bytes * 1000000 / audio_stream_frame_size(&stream->common) /
+                in_get_sample_rate(&stream->common));
+@@ -3099,6 +3143,11 @@
+     in->device  = devices & ~AUDIO_DEVICE_BIT_IN;
+ 
+     ALOGW("In channels %d, rate %d, devices 0x%x", channel_count, config->sample_rate, devices);
++    ALOGW("adev_open_input_streamW=ASHWINI");
++    ALOGD("adev_open_input_streamD=ASHWINI");
++    ALOGI("adev_open_input_streamI=ASHWINI");
++    ALOGE("adev_open_input_streamE=ASHWINI");
++    ALOGV("adev_open_input_streamV=ASHWINI");
+     memcpy(&in->config, &pcm_config_mm_in, sizeof(pcm_config_mm_in));
+     //in->config.channels = channel_count;
+     //in->config.rate     = *sample_rate;
+@@ -3243,6 +3292,11 @@
+         ALOGW("card %d, id %s ,driver %s, name %s", i, control_card_info_get_id(imx_control),
+                                                       control_card_info_get_driver(imx_control),
+                                                       control_card_info_get_name(imx_control));
++        ALOGW("WASHWINI");
++        ALOGD("DASHWINI");
++        ALOGI("IASHWINI");
++        ALOGE("EASHWINI");
++        ALOGV("VASHWINI");
+         for(j = 0; j < SUPPORT_CARD_NUM; j++) {
+             if(strstr(control_card_info_get_driver(imx_control), audio_card_list[j]->driver_name) != NULL){
+ 
+@@ -3329,6 +3383,7 @@
+ #endif
+ 
+                     ALOGW("in rate %d, channels %d format %d",adev->card_list[n]->in_rate, adev->card_list[n]->in_channels, adev->card_list[n]->in_format);
++                    ALOGW("ASHWINI");
+                 }
+ 
+                 left_out_devices &= ~audio_card_list[j]->supported_out_devices;
